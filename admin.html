@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Restaurant Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./styles/style.css" />
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50 to-rose-50">
+  <div class="max-w-3xl mx-auto p-6">
+    <h1 class="text-2xl font-semibold mb-6">Manage Dishes</h1>
+
+    <div id="firebaseWarning" class="hidden mb-4 p-3 rounded-md bg-yellow-100 text-yellow-900">
+      Firebase/Cloudinary config not set. Fill required configs to enable uploads. Display can still show dummy data.
+    </div>
+
+    <form id="dishForm" class="space-y-4 rounded-xl bg-white/70 backdrop-blur-md p-5 shadow-xl mb-8">
+      <div>
+        <label for="dishName" class="block text-sm font-medium text-slate-700 mb-1">Dish Name</label>
+        <input id="dishName" type="text" required placeholder="e.g., Spicy Paneer Tikka" class="w-full rounded-md border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400" />
+      </div>
+
+      <div>
+        <label for="dishCategory" class="block text-sm font-medium text-slate-700 mb-1">Category (optional)</label>
+        <select id="dishCategory" class="w-full rounded-md border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400">
+          <option value="">None</option>
+          <option>Starters</option>
+          <option>Main Course</option>
+          <option>Desserts</option>
+          <option>Beverages</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="dishImage" class="block text-sm font-medium text-slate-700 mb-1">Dish Image</label>
+        <input id="dishImage" type="file" accept="image/*" required class="w-full" />
+        <p class="text-xs text-slate-500 mt-1">Recommended: 1280×720 or higher, JPG/PNG</p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button id="uploadBtn" type="submit" class="inline-flex items-center gap-2 rounded-md bg-slate-900 text-white/90 hover:bg-slate-800 px-4 py-2">
+          <span>Add Dish</span>
+        </button>
+        <div id="progress" class="text-sm text-slate-600"></div>
+      </div>
+    </form>
+
+    <section>
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-semibold">All Dishes</h2>
+        <div id="listStatus" class="text-sm text-slate-500"></div>
+      </div>
+      <div id="dishList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <div class="mt-6 text-sm text-slate-600">
+      Uploaded dishes will appear immediately on the display page via real-time updates.
+    </div>
+  </div>
+
+  <script type="module" src="./scripts/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+/* Global animations and utilities */
+@keyframes slideFade {
+  0% { opacity: 0; transform: translateX(50px) scale(0.98); }
+  10%, 90% { opacity: 1; transform: translateX(0) scale(1); }
+  100% { opacity: 0; transform: translateX(-50px) scale(0.98); }
+}
+
+@keyframes pop-in {
+  0% { transform: translateY(-8px) scale(0.96); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.animate-pop-in { animation: pop-in 300ms ease-out; }
+
+.slide-enter { animation: slideFade 4.5s ease-in-out both; }
+
+/* Dish card overlay styling */
+.card-overlay {
+  background: linear-gradient(to top, rgba(0,0,0,0.55), rgba(0,0,0,0.0));
+}
+
+/* Hide scrollbar for slides container if needed */
+#slides { scrollbar-width: none; }
+#slides::-webkit-scrollbar { display: none; }

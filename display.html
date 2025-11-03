@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Restaurant Display</title>
+  <meta name="description" content="Smart Restaurant Display - real-time digital menu carousel" />
+  <link rel="icon" href="/assets/logo.svg" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./styles/style.css" />
+</head>
+<body class="min-h-screen bg-gradient-to-br from-amber-100 via-orange-50 to-rose-100 text-slate-800">
+  <!-- Header / Branding -->
+  <header class="w-full py-4 px-6 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <img src="./assets/logo.svg" alt="Logo" class="h-10 w-10 opacity-80" onerror="this.style.display='none'" />
+      <h1 class="text-2xl md:text-3xl font-semibold tracking-tight">Today's Specials</h1>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="fullscreenBtn" class="px-3 py-2 rounded-md bg-slate-900 text-white/90 hover:bg-slate-800 transition text-sm md:text-base">Fullscreen</button>
+    </div>
+  </header>
+
+  <!-- Carousel Container -->
+  <main class="w-full px-4 md:px-6 pb-6">
+    <section id="carousel" class="relative mx-auto max-w-6xl aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl bg-white/30 backdrop-blur-md">
+      <!-- Slides injected here by JS -->
+      <div id="slides" class="absolute inset-0 w-full h-full"></div>
+
+      <!-- Optional Controls -->
+      <button id="prevBtn" aria-label="Previous" class="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 items-center justify-center rounded-full bg-white/70 hover:bg-white shadow-lg text-slate-700">&#10094;</button>
+      <button id="nextBtn" aria-label="Next" class="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 items-center justify-center rounded-full bg-white/70 hover:bg-white shadow-lg text-slate-700">&#10095;</button>
+
+      <!-- New Items Indicator -->
+      <div id="updateBadge" class="pointer-events-none absolute top-4 right-4 z-30 hidden">
+        <span class="inline-flex items-center gap-2 rounded-full bg-emerald-600/90 text-white px-3 py-1 text-sm shadow-lg animate-pop-in">
+          <span class="h-2 w-2 rounded-full bg-white"></span>
+          New dish added!
+        </span>
+      </div>
+    </section>
+  </main>
+
+  <noscript>
+    <div class="p-4 text-center text-red-700">This app requires JavaScript to run.</div>
+  </noscript>
+
+  <script type="module" src="./scripts/display.js"></script>
+</body>
+</html>
