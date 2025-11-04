@@ -45,29 +45,65 @@ const dummyDishes = [
 function renderSlide(idx) {
   if (!dishes.length) return;
   const dish = dishes[idx % dishes.length];
-
+  
+  // Clear previous slide
   slidesRoot.innerHTML = '';
-
+  
+  // Create image element
+  const img = new Image();
+  img.src = dish.imageUrl;
+  img.alt = dish.name || 'Dish Image';
+  img.loading = 'lazy';
+  
+  // Create wrapper for the slide
   const wrapper = document.createElement('div');
   wrapper.className = 'relative w-full h-full slide-enter';
-
-  const img = document.createElement('img');
-  img.src = dish.imageUrl;
-  img.alt = dish.name;
-  img.loading = 'lazy';
-  img.className = 'absolute inset-0 w-full h-full object-cover';
-
-  const overlay = document.createElement('div');
-  overlay.className = 'absolute bottom-0 left-0 right-0 p-4 md:p-6 card-overlay';
-
-  const name = document.createElement('div');
-  name.className = 'text-white/95 text-xl md:text-3xl font-semibold drop-shadow-lg';
-  name.textContent = dish.name || 'Untitled Dish';
-
-  overlay.appendChild(name);
-  wrapper.appendChild(img);
-  wrapper.appendChild(overlay);
-  slidesRoot.appendChild(wrapper);
+  
+  // Check if image is portrait or landscape
+  img.onload = function() {
+    const isPortrait = img.naturalHeight > img.naturalWidth;
+    
+    // Toggle portrait mode class on carousel
+    if (isPortrait) {
+      carouselEl.classList.add('portrait-mode');
+      
+      // Create portrait container with side blurs
+      const portraitContainer = document.createElement('div');
+      portraitContainer.className = 'portrait-container';
+      
+      // Add image to portrait container
+      img.className = 'portrait-image';
+      portraitContainer.appendChild(img);
+      wrapper.appendChild(portraitContainer);
+    } else {
+      carouselEl.classList.remove('portrait-mode');
+      // For landscape, use standard image display
+      img.className = 'slide-image';
+      wrapper.appendChild(img);
+    }
+    
+    // Create overlay with dish name
+    const overlay = document.createElement('div');
+    overlay.className = 'card-overlay';
+    
+    const name = document.createElement('div');
+    name.className = 'text-white/95 text-xl md:text-3xl font-semibold drop-shadow-lg';
+    name.textContent = dish.name || 'Untitled Dish';
+    
+    overlay.appendChild(name);
+    wrapper.appendChild(overlay);
+    slidesRoot.appendChild(wrapper);
+  };
+  
+  // In case image fails to load
+  img.onerror = function() {
+    wrapper.innerHTML = `
+      <div class="w-full h-full flex items-center justify-center bg-gray-100">
+        <p class="text-gray-500">Image not available</p>
+      </div>
+    `;
+    slidesRoot.appendChild(wrapper);
+  };
 }
 
 function startAutoPlay() {
