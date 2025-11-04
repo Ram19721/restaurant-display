@@ -47,5 +47,212 @@
   </noscript>
 
   <script type="module" src="./scripts/display.js"></script>
+  <script>
+    // Universal Keep-Awake System
+    (function() {
+      console.log('Initializing keep-awake system...');
+      
+      // Method 1: Wake Lock API (modern browsers)
+      let wakeLock = null;
+      
+      // Method 2: Video-based approach (works on most TVs)
+      let keepAliveVideo = null;
+      
+      // Method 3: Timer-based approach (works everywhere)
+      let keepAliveTimer = null;
+      let lastActivity = Date.now();
+      
+      // Method 4: Fullscreen change handler (for some smart TVs)
+      let isFullscreen = false;
+      
+      // Try Wake Lock API first
+      async function tryWakeLock() {
+        try {
+          if ('wakeLock' in navigator) {
+            wakeLock = await navigator.wakeLock.request('screen');
+            console.log('Wake Lock API: Active');
+            wakeLock.addEventListener('release', () => {
+              console.log('Wake Lock was released, attempting to reacquire...');
+              if (document.visibilityState === 'visible') {
+                tryWakeLock();
+              }
+            });
+            return true;
+          }
+        } catch (err) {
+          console.warn('Wake Lock API failed:', err.message);
+        }
+        return false;
+      }
+      
+      // Video-based keep-awake (works on most TVs)
+      function startVideoKeepAlive() {
+        try {
+          // Create a tiny, hidden video element
+          keepAliveVideo = document.createElement('video');
+          keepAliveVideo.setAttribute('playsinline', '');
+          keepAliveVideo.setAttribute('muted', '');
+          keepAliveVideo.style.display = 'none';
+          document.body.appendChild(keepAliveVideo);
+          
+          // Use a tiny video that's just a single frame
+          const canvas = document.createElement('canvas');
+          canvas.width = 2;
+          canvas.height = 2;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = 'black';
+          ctx.fillRect(0, 0, 2, 2);
+          
+          // Play the video in a loop
+          keepAliveVideo.src = canvas.toDataURL('image/webm');
+          keepAliveVideo.loop = true;
+          
+          // Some TVs need this to be in the DOM for a moment before playing
+          setTimeout(() => {
+            const playPromise = keepAliveVideo.play();
+            if (playPromise !== undefined) {
+              playPromise.catch(err => {
+                console.warn('Video keep-alive failed:', err.message);
+                startTimerKeepAlive();
+              });
+            }
+          }, 100);
+          
+          console.log('Video keep-alive: Active');
+          return true;
+        } catch (err) {
+          console.warn('Video keep-alive failed:', err.message);
+          return false;
+        }
+      }
+      
+      // Timer-based keep-awake (universal fallback)
+      function startTimerKeepAlive() {
+        try {
+          // Reset activity timer
+          lastActivity = Date.now();
+          
+          // Reset any existing timer
+          if (keepAliveTimer) clearInterval(keepAliveTimer);
+          
+          // Simulate activity every 30 seconds
+          keepAliveTimer = setInterval(() => {
+            // Create a small, hidden iframe to simulate activity
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            setTimeout(() => {
+              document.body.removeChild(iframe);
+            }, 100);
+            
+            console.log('Keep-alive pulse');
+            lastActivity = Date.now();
+          }, 30000);
+          
+          console.log('Timer keep-alive: Active');
+          return true;
+        } catch (err) {
+          console.warn('Timer keep-alive failed:', err.message);
+          return false;
+        }
+      }
+      
+      // Fullscreen change handler (for some smart TVs)
+      function handleFullscreenChange() {
+        isFullscreen = !!document.fullscreenElement;
+        console.log('Fullscreen changed:', isFullscreen);
+      }
+      
+      // Initialize all keep-awake methods
+      async function initKeepAwake() {
+        console.log('Starting keep-awake system...');
+        
+        // Try Wake Lock API first
+        const wakeLockSuccess = await tryWakeLock();
+        
+        // Try video-based approach if Wake Lock fails
+        if (!wakeLockSuccess) {
+          console.log('Wake Lock not available, trying video keep-alive...');
+          const videoSuccess = startVideoKeepAlive();
+          
+          // Fall back to timer if video fails
+          if (!videoSuccess) {
+            console.log('Video keep-alive failed, falling back to timer...');
+            startTimerKeepAlive();
+          }
+        }
+        
+        // Add fullscreen change listener
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+        document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+        
+        // Initial fullscreen check
+        handleFullscreenChange();
+        
+        // Try to enter fullscreen automatically (some TVs support this)
+        try {
+          const elem = document.documentElement;
+          if (elem.requestFullscreen) {
+            elem.requestFullscreen().catch(e => console.log('Auto-fullscreen failed:', e));
+          } else if (elem.webkitRequestFullscreen) {
+            elem.webkitRequestFullscreen();
+          } else if (elem.mozRequestFullScreen) {
+            elem.mozRequestFullScreen();
+          } else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen();
+          }
+        } catch (e) {
+          console.log('Fullscreen request failed:', e);
+        }
+      }
+      
+      // Clean up on page unload
+      function cleanup() {
+        if (wakeLock) {
+          wakeLock.release().then(() => {
+            console.log('Wake Lock released');
+            wakeLock = null;
+          });
+        }
+        
+        if (keepAliveVideo) {
+          keepAliveVideo.pause();
+          keepAliveVideo.removeAttribute('src');
+          if (keepAliveVideo.parentNode) {
+            keepAliveVideo.parentNode.removeChild(keepAliveVideo);
+          }
+          keepAliveVideo = null;
+        }
+        
+        if (keepAliveTimer) {
+          clearInterval(keepAliveTimer);
+          keepAliveTimer = null;
+        }
+        
+        console.log('Keep-awake system cleaned up');
+      }
+      
+      // Initialize when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initKeepAwake);
+      } else {
+        initKeepAwake();
+      }
+      
+      // Clean up on page unload
+      window.addEventListener('beforeunload', cleanup);
+      window.addEventListener('unload', cleanup);
+      
+      // Keep track of user activity
+      const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
+      activityEvents.forEach(event => {
+        window.addEventListener(event, () => {
+          lastActivity = Date.now();
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
