@@ -42,98 +42,121 @@ const dummyDishes = [
   }
 ];
 
+let isTransitioning = false;
+
 function renderSlide(idx, force = false) {
+  // Prevent multiple transitions
+  if (isTransitioning) return;
+  
   if (!dishes.length) return;
   
   // Don't re-render if it's the same slide and not forced
-  if (currentIndex === idx && !force) return;
+  const newIndex = idx % dishes.length;
+  if (currentIndex === newIndex && !force) return;
   
-  currentIndex = idx % dishes.length;
+  isTransitioning = true;
+  currentIndex = newIndex;
   const dish = dishes[currentIndex];
   
-  // Clear previous slide
-  while (slidesRoot.firstChild) {
-    slidesRoot.removeChild(slidesRoot.firstChild);
+  // Fade out current slide
+  if (slidesRoot.firstChild) {
+    slidesRoot.firstChild.style.opacity = '0';
   }
   
-  // Create wrapper for the slide
-  const wrapper = document.createElement('div');
-  wrapper.className = 'relative w-full h-full';
-  
-  // Create a loading indicator
-  const loadingIndicator = document.createElement('div');
-  loadingIndicator.className = 'absolute inset-0 flex items-center justify-center bg-black';
-  loadingIndicator.innerHTML = '<div class="animate-pulse text-white">Loading...</div>';
-  wrapper.appendChild(loadingIndicator);
-  
-  // Create image element
-  const img = new Image();
-  img.src = dish.imageUrl;
-  img.alt = dish.name || 'Dish Image';
-  img.loading = 'eager'; // Force load immediately
-  
-  // Handle image load
-  img.onload = function() {
-    // Remove loading indicator
-    if (loadingIndicator.parentNode === wrapper) {
-      wrapper.removeChild(loadingIndicator);
+  // Clear previous slide after fade out
+  setTimeout(() => {
+    // Clear all children
+    while (slidesRoot.firstChild) {
+      slidesRoot.removeChild(slidesRoot.firstChild);
     }
+  
+    // Create wrapper for the slide
+    const wrapper = document.createElement('div');
+    wrapper.className = 'relative w-full h-full';
     
-    // Clear any existing content
-    wrapper.innerHTML = '';
+    // Create a loading indicator
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.className = 'absolute inset-0 flex items-center justify-center bg-black';
+    loadingIndicator.innerHTML = '<div class="animate-pulse text-white">Loading...</div>';
+    wrapper.appendChild(loadingIndicator);
     
-    const isPortrait = img.naturalHeight > img.naturalWidth;
+    // Add the wrapper to the DOM first
+    slidesRoot.appendChild(wrapper);
     
-    // Toggle portrait mode class on carousel
-    if (isPortrait) {
-      carouselEl.classList.add('portrait-mode');
+    // Create image element
+    const img = new Image();
+    img.onload = function() {
+      // Remove loading indicator
+      if (loadingIndicator.parentNode === wrapper) {
+        wrapper.removeChild(loadingIndicator);
+      }
       
-      // Create portrait container with side blurs
-      const portraitContainer = document.createElement('div');
-      portraitContainer.className = 'portrait-container';
+      // Clear any existing content
+      wrapper.innerHTML = '';
       
-      // Add image to portrait container
-      const imgClone = img.cloneNode();
-      imgClone.className = 'portrait-image';
-      portraitContainer.appendChild(imgClone);
-      wrapper.appendChild(portraitContainer);
-    } else {
-      carouselEl.classList.remove('portrait-mode');
-      // For landscape, use standard image display
-      const imgClone = img.cloneNode();
-      imgClone.className = 'slide-image';
-      wrapper.appendChild(imgClone);
-    }
+      const isPortrait = img.naturalHeight > img.naturalWidth;
+      
+      // Toggle portrait mode class on carousel
+      if (isPortrait) {
+        carouselEl.classList.add('portrait-mode');
+        
+        // Create portrait container with side blurs
+        const portraitContainer = document.createElement('div');
+        portraitContainer.className = 'portrait-container';
+        
+        // Add image to portrait container
+        const imgClone = img.cloneNode();
+        imgClone.className = 'portrait-image';
+        portraitContainer.appendChild(imgClone);
+        wrapper.appendChild(portraitContainer);
+      } else {
+        carouselEl.classList.remove('portrait-mode');
+        // For landscape, use standard image display
+        const imgClone = img.cloneNode();
+        imgClone.className = 'slide-image';
+        wrapper.appendChild(imgClone);
+      }
     
-    // Create overlay with dish name
-    const overlay = document.createElement('div');
-    overlay.className = 'card-overlay';
+      // Create overlay with dish name
+      const overlay = document.createElement('div');
+      overlay.className = 'card-overlay';
+      
+      const name = document.createElement('div');
+      name.className = 'text-white/95 text-xl md:text-3xl font-semibold drop-shadow-lg';
+      name.textContent = dish.name || 'Untitled Dish';
+      
+      overlay.appendChild(name);
+      wrapper.appendChild(overlay);
+      
+      // Add slide animation
+      wrapper.classList.add('slide-enter');
+      
+      // Fade in the new slide
+      wrapper.style.opacity = '1';
+      
+      // Re-enable transitions
+      setTimeout(() => {
+        isTransitioning = false;
+      }, 500); // Match this with your CSS transition duration
+    };
     
-    const name = document.createElement('div');
-    name.className = 'text-white/95 text-xl md:text-3xl font-semibold drop-shadow-lg';
-    name.textContent = dish.name || 'Untitled Dish';
+    // Set image source after setting up the onload handler
+    img.src = dish.imageUrl;
+    img.alt = dish.name || 'Dish Image';
     
-    overlay.appendChild(name);
-    wrapper.appendChild(overlay);
-    
-    // Add slide animation
-    wrapper.classList.add('slide-enter');
-  };
-  
-  // In case image fails to load
-  img.onerror = function() {
-    wrapper.innerHTML = `
-      <div class="w-full h-full flex items-center justify-center bg-black">
-        <p class="text-white">Image not available</p>
-      </div>
-    `;
-  };
-  
-  // Add the wrapper to the DOM
-  slidesRoot.appendChild(wrapper);
-  
-  // Force a reflow to ensure the slide-enter animation plays
-  void wrapper.offsetWidth;
+    // In case image fails to load
+    img.onerror = function() {
+      wrapper.innerHTML = `
+        <div class="w-full h-full flex items-center justify-center bg-black">
+          <p class="text-white">Image not available</p>
+        </div>
+      `;
+      
+      // Re-enable transitions even on error
+      setTimeout(() => {
+        isTransitioning = false;
+      }, 500);
+    };
 }
 
 function startAutoPlay() {
@@ -197,19 +220,39 @@ function initRealtime() {
   });
 }
 
-// Controls
-nextBtn?.addEventListener('click', () => {
+// Navigation functions
+function goToNextSlide() {
+  if (dishes.length <= 1) return;
   stopAutoPlay();
-  currentIndex = (currentIndex + 1) % Math.max(dishes.length, 1);
-  renderSlide(currentIndex);
+  const nextIndex = (currentIndex + 1) % dishes.length;
+  renderSlide(nextIndex);
   startAutoPlay();
-});
+}
 
-prevBtn?.addEventListener('click', () => {
+function goToPrevSlide() {
+  if (dishes.length <= 1) return;
   stopAutoPlay();
-  currentIndex = (currentIndex - 1 + Math.max(dishes.length, 1)) % Math.max(dishes.length, 1);
-  renderSlide(currentIndex);
+  const prevIndex = (currentIndex - 1 + dishes.length) % dishes.length;
+  renderSlide(prevIndex);
   startAutoPlay();
+}
+
+// Add event listeners for navigation
+if (nextBtn) {
+  nextBtn.addEventListener('click', goToNextSlide);
+}
+
+if (prevBtn) {
+  prevBtn.addEventListener('click', goToPrevSlide);
+}
+
+// Add keyboard navigation
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') {
+    goToNextSlide();
+  } else if (e.key === 'ArrowLeft') {
+    goToPrevSlide();
+  }
 });
 
 fullscreenBtn?.addEventListener('click', async () => {
