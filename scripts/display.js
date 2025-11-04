@@ -42,25 +42,46 @@ const dummyDishes = [
   }
 ];
 
-function renderSlide(idx) {
+function renderSlide(idx, force = false) {
   if (!dishes.length) return;
-  const dish = dishes[idx % dishes.length];
+  
+  // Don't re-render if it's the same slide and not forced
+  if (currentIndex === idx && !force) return;
+  
+  currentIndex = idx % dishes.length;
+  const dish = dishes[currentIndex];
   
   // Clear previous slide
-  slidesRoot.innerHTML = '';
+  while (slidesRoot.firstChild) {
+    slidesRoot.removeChild(slidesRoot.firstChild);
+  }
+  
+  // Create wrapper for the slide
+  const wrapper = document.createElement('div');
+  wrapper.className = 'relative w-full h-full';
+  
+  // Create a loading indicator
+  const loadingIndicator = document.createElement('div');
+  loadingIndicator.className = 'absolute inset-0 flex items-center justify-center bg-black';
+  loadingIndicator.innerHTML = '<div class="animate-pulse text-white">Loading...</div>';
+  wrapper.appendChild(loadingIndicator);
   
   // Create image element
   const img = new Image();
   img.src = dish.imageUrl;
   img.alt = dish.name || 'Dish Image';
-  img.loading = 'lazy';
+  img.loading = 'eager'; // Force load immediately
   
-  // Create wrapper for the slide
-  const wrapper = document.createElement('div');
-  wrapper.className = 'relative w-full h-full slide-enter';
-  
-  // Check if image is portrait or landscape
+  // Handle image load
   img.onload = function() {
+    // Remove loading indicator
+    if (loadingIndicator.parentNode === wrapper) {
+      wrapper.removeChild(loadingIndicator);
+    }
+    
+    // Clear any existing content
+    wrapper.innerHTML = '';
+    
     const isPortrait = img.naturalHeight > img.naturalWidth;
     
     // Toggle portrait mode class on carousel
@@ -72,14 +93,16 @@ function renderSlide(idx) {
       portraitContainer.className = 'portrait-container';
       
       // Add image to portrait container
-      img.className = 'portrait-image';
-      portraitContainer.appendChild(img);
+      const imgClone = img.cloneNode();
+      imgClone.className = 'portrait-image';
+      portraitContainer.appendChild(imgClone);
       wrapper.appendChild(portraitContainer);
     } else {
       carouselEl.classList.remove('portrait-mode');
       // For landscape, use standard image display
-      img.className = 'slide-image';
-      wrapper.appendChild(img);
+      const imgClone = img.cloneNode();
+      imgClone.className = 'slide-image';
+      wrapper.appendChild(imgClone);
     }
     
     // Create overlay with dish name
@@ -92,25 +115,34 @@ function renderSlide(idx) {
     
     overlay.appendChild(name);
     wrapper.appendChild(overlay);
-    slidesRoot.appendChild(wrapper);
+    
+    // Add slide animation
+    wrapper.classList.add('slide-enter');
   };
   
   // In case image fails to load
   img.onerror = function() {
     wrapper.innerHTML = `
-      <div class="w-full h-full flex items-center justify-center bg-gray-100">
-        <p class="text-gray-500">Image not available</p>
+      <div class="w-full h-full flex items-center justify-center bg-black">
+        <p class="text-white">Image not available</p>
       </div>
     `;
-    slidesRoot.appendChild(wrapper);
   };
+  
+  // Add the wrapper to the DOM
+  slidesRoot.appendChild(wrapper);
+  
+  // Force a reflow to ensure the slide-enter animation plays
+  void wrapper.offsetWidth;
 }
 
 function startAutoPlay() {
   stopAutoPlay();
+  if (dishes.length <= 1) return; // Don't auto-play if only one or no items
+  
   timerId = setInterval(() => {
-    currentIndex = (currentIndex + 1) % Math.max(dishes.length, 1);
-    renderSlide(currentIndex);
+    const nextIndex = (currentIndex + 1) % dishes.length;
+    renderSlide(nextIndex);
   }, INTERVAL);
 }
 
