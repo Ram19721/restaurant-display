@@ -8,8 +8,17 @@
   <link rel="stylesheet" href="./styles/style.css" />
 </head>
 <body class="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50 to-rose-50">
+  <!-- Header with Logout -->
+  <header class="bg-white/80 backdrop-blur-sm shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+      <h1 class="text-2xl font-semibold text-slate-800">Restaurant Admin Panel</h1>
+      <div id="headerActions">
+        <!-- Logout button will be added here by auth.js -->
+      </div>
+    </div>
+  </header>
+
   <div class="max-w-3xl mx-auto p-6">
-    <h1 class="text-2xl font-semibold mb-6">Manage Dishes</h1>
 
     <div id="firebaseWarning" class="hidden mb-4 p-3 rounded-md bg-yellow-100 text-yellow-900">
       Firebase/Cloudinary config not set. Fill required configs to enable uploads. Display can still show dummy data.
@@ -59,6 +68,7 @@
     </div>
   </div>
 
+  <script type="module" src="./scripts/auth.js"></script>
   <script type="module" src="./scripts/admin.js"></script>
 </body>
 </html>

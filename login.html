@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Restaurant Display System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="./assets/logo.svg" />
+  <style>
+    .btn-hover {
+      transition: all 0.3s ease;
+    }
+    .btn-hover:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-amber-100 via-orange-50 to-rose-100">
+  <div class="min-h-screen flex items-center justify-center p-6">
+    <div class="w-full max-w-md">
+      <div class="text-center mb-8">
+        <div class="flex justify-center mb-4">
+          <img src="./assets/logo.svg" alt="Restaurant Logo" class="h-20 w-20 opacity-90" onerror="this.style.display='none'" />
+        </div>
+        <h1 class="text-3xl font-bold text-slate-800">Welcome Back</h1>
+        <p class="text-slate-600 mt-2">Sign in to access the admin panel</p>
+      </div>
+      
+      <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50">
+        <form id="loginForm" class="space-y-6">
+          <div>
+            <label for="email" class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+            <input 
+              type="email" 
+              id="email" 
+              required
+              class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition"
+              placeholder="Enter your email"
+            >
+          </div>
+          
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label for="password" class="block text-sm font-medium text-slate-700">Password</label>
+              <a href="#" class="text-sm text-amber-600 hover:text-amber-700">Forgot password?</a>
+            </div>
+            <input 
+              type="password" 
+              id="password" 
+              required
+              class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition"
+              placeholder="Enter your password"
+            >
+          </div>
+          
+          <div class="flex items-center">
+            <input 
+              type="checkbox" 
+              id="remember" 
+              class="h-4 w-4 text-amber-600 focus:ring-amber-500 border-slate-300 rounded"
+            >
+            <label for="remember" class="ml-2 block text-sm text-slate-700">
+              Remember me
+            </label>
+          </div>
+          
+          <div>
+            <button 
+              type="submit" 
+              class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 btn-hover transition-colors"
+            >
+              Sign in
+            </button>
+          </div>
+        </form>
+        
+        <div id="errorMessage" class="mt-4 text-sm text-red-600 hidden">
+          Invalid email or password. Please try again.
+        </div>
+      </div>
+      
+      <div class="mt-6 text-center text-sm text-slate-600">
+        <p> 2023 Restaurant Display System. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Predefined credentials (for demo purposes only)
+    const VALID_CREDENTIALS = {
+      email: 'admin@restaurant.com',
+      password: 'admin123'
+    };
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const rememberMe = document.getElementById('remember').checked;
+      const errorElement = document.getElementById('errorMessage');
+      
+      if (email === VALID_CREDENTIALS.email && password === VALID_CREDENTIALS.password) {
+        // Store login state in localStorage if "Remember me" is checked
+        if (rememberMe) {
+          localStorage.setItem('isAuthenticated', 'true');
+        } else {
+          sessionStorage.setItem('isAuthenticated', 'true');
+        }
+        
+        // Redirect to admin page
+        window.location.href = 'admin.html';
+      } else {
+        // Show error message
+        errorElement.classList.remove('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
