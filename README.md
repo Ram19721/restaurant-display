@@ -14,8 +14,8 @@ Static two-page web app using Firebase (Firestore + Storage) to show a real-time
 - Without credentials, `index.html` will show dummy sample dishes; `admin.html` disables upload.
 - Uses Firebase v11 CDN modular SDK and Tailwind CDN.
 
-## Admin Authentication (Google)
-The admin page is protected by Firebase Authentication (Google Sign-In).
+## Admin Authentication
+The admin page is protected by Firebase Authentication.
 
 Steps:
 - In Firebase Console → Build → Authentication → Sign-in method → Enable Google provider.
